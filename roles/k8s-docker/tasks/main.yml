@@ -1,0 +1,70 @@
+---
+
+- name: Install dependencies
+  become: yes
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+  - lvm2
+  - device-mapper
+  - device-mapper-persistent-data
+  - device-mapper-event
+  - device-mapper-libs
+  - device-mapper-event-libs
+
+- name: Copy RPMs from local repositrory
+  get_url: url={{ rpms_url }}/docker/{{ item }} dest="/tmp/"
+  with_items:
+  - "{{ pigz }}"
+  - docker-ce{{ docker.version }}
+  - "{{ libcgroup }}"
+  - "{{ libtool }}"
+  - "{{ container_selinux }}"
+
+- name: Install docker packages
+  become: yes
+  package:
+    name: "/tmp/{{ item }}"
+    state: present
+  with_items:
+  - "{{ pigz }}"
+  - "{{ container_selinux }}"
+  - "{{ libcgroup }}"
+  - "{{ libtool }}"
+  - docker-ce{{ docker.version }}
+  notify: Delete RPM files from local tmp directory
+
+- name: "Ensure Docker is {{ docker.start | ternary('started','stopped') }}"
+  service: name=docker state={{ docker.start | ternary('restarted','stopped') }} enabled={{ docker.service_enabled }}
+  become: yes
+
+- name: Enabling docker service and start it
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Deploying docker registy ca
+  copy:
+    src: "{{ item }}"
+    dest: /etc/pki/ca-trust/source/anchors
+    owner: root
+    group: root
+  with_fileglob: files/docker_registry_cert/*
+
+- name: Updating ca-certs
+  shell: "update-ca-trust"
+
+- name: Ensure systemd docker override directory exists
+  file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+
+- name: Ensure docker uses the proxy and the overlay storage driver
+  template:
+    src: docker_override.conf.j2
+    dest: /etc/systemd/system/docker.service.d/override.conf
+  notify:
+    - Reload systemd
+    - Restart docker

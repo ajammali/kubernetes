@@ -1,0 +1,18 @@
+---
+
+docker:
+  version: -18.03.0.ce-1.el7.centos.x86_64.rpm
+  start: true
+  service_enabled: yes
+
+libcgroup: libcgroup-0.41-13.el7.x86_64.rpm
+
+libtool: libtool-ltdl-2.4.2-22.el7_3.x86_64.rpm
+
+container_selinux: container-selinux-2.9-4.el7.noarch.rpm
+
+pigz: pigz-2.3.4-1.el7.x86_64.rpm
+
+docker_service_d: /etc/systemd/system/docker.service.d/
+
+service_repo: /etc/systemd/system

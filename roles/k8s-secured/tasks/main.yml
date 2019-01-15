@@ -1,0 +1,30 @@
+---
+
+#- name: Check if admi-user service account already exist
+#  shell: kubectl get serviceaccount -n kube-system | grep -q "admin-user"
+#  ignore_errors: yes
+#  register: check_sa_admin
+#
+#- name: Delete service account admin-user
+#  command: kubectl delete serviceaccount admin-user -n kube-system
+#  when: check_sa_admin is succeeded
+
+- name: Install ServiceAccount config file
+  template:
+    src: admin-sa.yml.j2
+    dest: "{{ kube_addon_dir }}/admin-sa.yml"
+  register: sa_conf
+
+- name: Create ServiceAccount
+  command: kubectl create -f {{ kube_addon_dir }}/admin-sa.yml
+  when: sa_conf is changed
+
+- name: Install ClusterRoleBinding config file
+  template:
+    src: admin-crb.yml
+    dest: "{{ kube_addon_dir }}/admin-crb.yml"
+  register: crb_conf
+
+- name: Create Cluster Role Binding for access rights
+  command: kubectl create -f {{ kube_addon_dir }}/admin-crb.yml
+  when: crb_conf is changed

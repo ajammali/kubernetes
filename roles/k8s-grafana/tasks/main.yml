@@ -1,0 +1,20 @@
+---
+
+- name: Copy k8s apps configuration files
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ kube_addon_dir }}/{{ item }}"
+  with_items:
+    - grafana.yml
+    - influxdb.yml
+    - heapster.yml
+  register: apps_conf
+
+- name: Install apps
+  command: "kubectl create -f {{ kube_addon_dir }}/{{ item }}"
+  with_items:
+    - grafana.yml
+    - influxdb.yml
+#    - heapster.yml
+  ignore_errors: yes
+#  when: apps_conf is changed

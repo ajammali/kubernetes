@@ -1,0 +1,53 @@
+---
+
+- name: Create RPM directory
+  file:
+    name: /data/rpms
+    state: directory
+
+- name: Install k8s packages
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - socat-1.7.3.2-2
+    - cri-tools-1.11.0-0
+    - kubectl-1.11.3-0
+    - kubeadm-1.11.3-0
+    - kubernetes-cni-0.6.0-0
+    - kubelet-1.11.3-0
+
+#- name: Copy RPMs from local repositrory
+#  get_url:
+#    url: "{{ lirgs_url }}/kubernetes/{{ item }}"
+#    dest: /data/rpms/
+#  with_items: "{{ k8s_rpm_packages }}"
+#
+#- name: Installing Kubernetes packages
+#  yum:
+#    name: "/data/rpms/{{ item }}"
+#    state: present
+#  with_items:
+#    - "{{ k8s_rpm_packages }}"
+#
+#- name: Cleanup work directory
+#  file:
+#    name: /data/rpms
+#    state: absent
+
+- name: Update /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  replace:
+    path: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    regexp: 'KUBELET_CGROUP_ARGS=--cgroup-driver=systemd'
+    replace: 'KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs'
+    backup: yes
+
+- name: Update /etc/resolve.conf and /etc/hosts
+  shell: echo -e "nameserver 127.0.0.1\nnameserver $(hostname -i)" >> /etc/resolv.conf
+  shell: echo -e "$(hostname -i)\tlocalhost.$(hostname -d)" >> /etc/hosts
+
+- name: Enabling kubelet and start it
+  service:
+    name: kubelet
+    enabled: yes
+    state: started

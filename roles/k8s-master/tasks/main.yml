@@ -1,0 +1,50 @@
+---
+
+- name: Init K8s cluster
+  shell: |
+    kubeadm init --service-cidr {{ service_cidr }} \
+                 --kubernetes-version {{ kubernetes_version_rhel_package }} \
+                 --pod-network-cidr {{ pod_network_cidr }} \
+                 --token {{ token }} \
+                 {{ kubeadm_opts }} \
+  register: init_cluster
+
+- name: Create K8s config directory
+  file: path=/root/.kube/ state=directory
+
+- name: Create Kubernetes addon directory
+  file:
+    path: "{{ kube_addon_dir }}"
+    state: directory
+
+- name: Copy admin.conf to Home directory
+  when: init_cluster
+  copy:
+    src: "{{ kubeadmin_config }}"
+    dest: "/root/.kube/config"
+    owner: root
+    group: root
+    mode: 0755
+    remote_src: true
+
+- name: Create {{ kube_addon_dir }}
+  file:
+    path: "{{ kube_addon_dir }}"
+    state: directory
+    force: no
+
+- name: Add Flannel networking templates
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ kube_addon_dir }}/{{ item }}"
+  with_items:
+  - flannel.yml
+  - flannel-rbac.yml
+
+- name: Configure Flannel networking.
+  command: "kubectl apply -f {{ kube_addon_dir }}/{{ item }}"
+  with_items:
+  - flannel.yml
+  - flannel-rbac.yml
+  register: flannel_result
+  changed_when: "'created' in flannel_result.stdout"

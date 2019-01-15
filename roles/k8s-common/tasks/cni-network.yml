@@ -1,0 +1,13 @@
+- name: Create /etc/cni/net.d
+  file:
+    path: /etc/cni/net.d
+    state: directory
+    recurse: yes
+
+- name: add conf files
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/cni/net.d/{{ item }}"
+  with_items:
+    - "10-mynet.conf"
+    - "99-loopback.conf"

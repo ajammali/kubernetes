@@ -1,0 +1,5 @@
+---
+
+dcos_ntp_servers:
+  - ntp1.intra-coliposte.net
+  - ntp2.intra-coliposte.net

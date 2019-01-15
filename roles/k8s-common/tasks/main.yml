@@ -1,0 +1,58 @@
+---
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Fix the content of /etc/hosts
+  import_tasks: cleanup-hosts.yml
+
+- name: update kernel settings
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Enable OverlayFS
+  copy:
+    content: overlay
+    dest: /etc/modules-load.d/overlay.conf
+  register: overlay
+
+- name: Ensure kubernetes repo is added to yum conf
+  import_tasks: k8s-repo.yml
+
+- name: Reboot machine
+  shell: sleep 2 && /sbin/shutdown -r now "Ansible triggered reboot"
+  async: 1
+  poll: 0
+  when: overlay.changed
+
+- name: Wait for machine to come back online
+  become: no
+  local_action: wait_for
+  args:
+    host: "{{ inventory_hostname }}"
+    port: 22
+    state: started
+    timeout: 300
+    delay: 30
+  when: overlay.changed
+
+- name: Create /etc/cni/net.d
+  import_tasks: cni-network.yml
+
+- name: Install kubernetes common components
+  import_tasks: k8s-common.yml
+
+- name: update kernel settings
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Fix the content of /etc/hosts
+  import_tasks: cleanup-hosts.yml

@@ -1,0 +1,17 @@
+---
+
+- name: "Set fact {{ network }} cni variable"
+  set_fact:
+    cni: "{{ vars[network] }}"
+
+- name: Create Kubernetes addon directory
+  file: path={{ network_dir }} state=directory
+
+- name: "Copy {{ cni.name }} yml file"
+  template: src="{{ cni.template.ds }}.j2" dest={{ network_dir }}/{{ cni.template.ds }}
+
+- name: "Create {{ cni.name }} network daemonset"
+  shell: |
+    kubectl create -f {{ network_dir }}/{{ cni.template.ds }}
+  delegate_to: "{{ groups['master'][0] }}"
+  run_once: true

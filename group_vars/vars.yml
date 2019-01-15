@@ -1,0 +1,17 @@
+---
+# NEXUS
+nexus_url: {{ vault_nexus_url }}
+nexus_port: {{ vault_nexus_port }}
+
+# REGISTRY IT
+it_registry: {{ vault_it_registry }}
+
+# PROXY PFI
+proxy_pfi: {{ vault_proxy_pfi }}
+no_proxy: {{ vault_no_proxy }}
+
+# K8S_Token
+token: {{ vault_token }}
+
+# lirgs195
+lirgs_url: {{ vault_lirgs_url }}

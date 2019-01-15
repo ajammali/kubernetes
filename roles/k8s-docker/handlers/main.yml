@@ -1,0 +1,15 @@
+---
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+# Restart docker
+- name: Restart docker
+  service:
+    name: docker
+    state: restarted
+
+# Delete RPM files from local repository
+- name: Delete RPM files from local tmp directory
+  become: true
+  shell: /bin/rm -rf /tmp/*.rpm

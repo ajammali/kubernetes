@@ -1,0 +1,8 @@
+---
+
+- name: Installing python packages
+  yum:
+    name: "{{ rpms_url }}/python/{{ item }}"
+    state: present
+  with_items: [ "{{ pythonpip }}", "{{ py_websocket }}", "{{ py_addr }}", "{{ dockerpy }}" ]
+

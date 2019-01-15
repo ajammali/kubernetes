@@ -1,0 +1,26 @@
+---
+
+- name: remove /etc/environment content
+  shell: echo '' | tee /etc/environment
+
+- name: extract hostname
+  shell: "echo -e $(hostname)"
+  register: pure_hostname
+
+- name: extract hostname_clt
+  shell: "echo -e $(hostname).$(hostname -d)"
+  register: hostname_clt
+
+- name: Update /etc/hosts file
+  replace:
+    path: /etc/hosts
+    regexp: '127.0.0.1 {{ hostname_clt.stdout }} {{ pure_hostname.stdout }}'
+    replace: '{{ ansible_default_ipv4.address }} {{ hostname_clt.stdout }} {{ pure_hostname.stdout }}'
+    backup: yes
+
+- name: Update /etc/hosts file
+  replace:
+    path: /etc/hosts
+    regexp: '::1 {{ hostname_clt.stdout }} {{ pure_hostname.stdout }}'
+    replace: ''
+    backup: yes

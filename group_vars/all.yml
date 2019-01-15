@@ -1,0 +1,88 @@
+pythonpip: python2-pip-8.1.2-5.el7.noarch.rpm
+py_websocket: python-websocket-client-0.32.0-116.el7.noarch.rpm
+py_addr: python-ipaddress-1.0.16-2.el7.noarch.rpm
+dockerpy: python-docker-py-1.9.0-1.sdl7.noarch.rpm
+
+# Any other additional opts you want to add..
+kubeadm_opts: ""
+# For example:
+# kubeadm_opts: '--apiserver-cert-extra-sans "k8s.domain.com,kubernetes.domain.com"'
+
+service_subnet: 10.96.0
+service_cidr: "{{ service_subnet }}.0/12"
+dns_name: cluster.local
+dns_ip: "{{ service_subnet }}.10"
+
+# Network implementation('flannel', 'calico')
+network: flannel
+pod_network_cidr: 10.244.0.0/16
+cni_opts: iface=eth1 # flannel: --iface=eth1, calico: interface=eth1
+
+kubeadmin_config: /etc/kubernetes/admin.conf
+systemd_dir: /lib/systemd/system
+system_env_dir: /etc/sysconfig
+network_dir: /etc/kubernetes/network
+kube_addon_dir: /etc/kubernetes/addon
+k8s_certs_repo: /etc/kubernetes/certs
+
+ansible_os_family: RedHat
+kubernetes_version_rhel_package: 'v1.11.3'
+kubernetes_yum_arch: x86_64
+k8s_rpm_packages:
+  - "socat-1.7.3.2-2.el7.x86_64.rpm"
+  - "cri-tools-1.11.0-0.{{ kubernetes_yum_arch }}.rpm"
+  - "kubectl-1.11.3-0.{{ kubernetes_yum_arch }}.rpm"
+  - "kubeadm-1.11.3-0.{{ kubernetes_yum_arch }}.rpm"
+  - "kubernetes-cni-0.6.0-0.{{ kubernetes_yum_arch }}.rpm"
+  - "kubelet-1.11.3-0.{{ kubernetes_yum_arch }}.rpm"
+
+k8s_images:
+  - "k8s.gcr.io/kube-apiserver-amd64:{{ k8s_apiserver_version }}"
+  - "k8s.gcr.io/kube-controller-manager-amd64:{{ k8s_controller_manager_version }}"
+  - "k8s.gcr.io/kube-scheduler-amd64:{{ k8s_scheduler_version }}"
+  - "k8s.gcr.io/kube-proxy-amd64:{{ k8s_proxy_version }}"
+  - "k8s.gcr.io/pause:{{ k8s_pause_version }}"
+  - "k8s.gcr.io/etcd-amd64:{{ k8s_etcd_version }}"
+  - "k8s.gcr.io/coredns:{{ k8s_coredns_version }}"
+  - "k8s.gcr.io/kubernetes-dashboard-amd64:{{ k8s_dashboard_version }}"
+  - "k8s.gcr.io/heapster-amd64:{{ k8s_heapster_version }}"
+  - "k8s.gcr.io/heapster-grafana-amd64:{{ k8s_grafana_version }}"
+  - "k8s.gcr.io/heapster-influxdb-amd64:{{ k8s_influxdb_version }}"
+  - "quay.io/coreos/flannel:{{ k8s_flannel_version }}"
+
+k8s_influxdb_version: v1.5.2
+k8s_grafana_version: v5.0.4
+k8s_heapster_version: v1.5.4
+k8s_dashboard_version: v1.10.1
+
+k8s_apiserver_version: v1.11.3
+k8s_controller_manager_version: v1.11.3
+k8s_scheduler_version: v1.11.3
+k8s_proxy_version: v1.11.3
+
+k8s_pause_version: 3.1
+k8s_etcd_version: 3.2.18
+k8s_coredns_version: 1.1.3
+k8s_flannel_version: v0.10.0-amd64
+
+vault_file_path: "{{ playbook_dir }}/group_vars/vault.yml"
+
+# NEXUS
+nexus_url: "{{ vault_nexus_url }}"
+nexus_port: "{{ vault_nexus_port }}"
+
+# REGISTRY IT
+it_registry: "{{ vault_it_registry }}"
+
+# PROXY PFI
+proxy_pfi: "{{ vault_proxy_pfi }}"
+no_proxy: "{{ vault_no_proxy }}"
+
+# K8S_Token
+token: "{{ vault_token }}"
+
+# RPMs repo
+rpms_repo: "{{ vault_lirgs_url }}"
+
+# Dashboard
+k8s_dashboard_ui_port: 30000

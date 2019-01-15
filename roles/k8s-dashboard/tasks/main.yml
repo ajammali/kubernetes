@@ -1,0 +1,46 @@
+---
+
+- name: make sure certs repo exists
+  file:
+    path: "{{ k8s_certs_repo }}"
+    state: directory
+
+- name: Add cluster custom certs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ k8s_certs_repo }}"
+  with_fileglob: files/certs/*
+
+- name: Check if kubernetes-dashboard secret already exist
+  shell: kubectl get secret -n kube-system | grep -q "kubernetes-dashboard-certs"
+  ignore_errors: yes
+  register: check_secret
+
+- name: Delete the old default dashboard certs secret
+  command: kubectl delete secret kubernetes-dashboard-certs -n kube-system
+  when: check_secret is succeeded
+
+- name: Create new dashboard secret using custom certs files
+  command: "kubectl create secret generic kubernetes-dashboard-certs --from-file={{ k8s_certs_repo }} -n kube-system"
+
+- name: Copy k8s dashboard RBAC configuration file
+  template:
+    src: dashboard-rbac.yml.j2
+    dest: "{{ kube_addon_dir }}/dashboard-rbac.yml"
+  register: config_rbac
+
+- name: Install dashboard RBAC rules
+  command: "kubectl create -f {{ kube_addon_dir }}/dashboard-rbac.yml"
+  ignore_errors: yes
+  when: config_rbac is changed
+
+- name: Copy k8s dashboard configuration file
+  template:
+    src: dashboard.yml.j2
+    dest: "{{ kube_addon_dir }}/dashboard.yml"
+  register: config_file
+
+- name: Install dashboard
+  command: "kubectl create -f {{ kube_addon_dir }}/dashboard.yml"
+  ignore_errors: yes
+  when: config_file is changed

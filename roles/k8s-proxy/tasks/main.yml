@@ -1,0 +1,25 @@
+---
+
+- name: make sure the process is not already running
+  shell: pgrep kubectl
+  register: check_process
+  ignore_errors: yes
+
+- name: Install kube-proxy launch script
+  template:
+    src: kube_proxy.sh.j2
+    dest: "{{ kube_addon_dir }}/kube_proxy.sh"
+    mode: u=rwx,g=rx,o=r
+  when: check_process.stdout == ""
+
+- name: Launch kubectl proxy process
+  shell: nohup ./kube_proxy.sh >/dev/null 2>&1 &
+  args:
+    chdir: "{{ kube_addon_dir }}"
+  when: check_process.stdout == ""
+
+- name: Make sure kube-proxy is launched
+  shell: netstat -tulp | grep kubectl
+  register: check_proxy
+  failed_when: check_proxy.stdout == ""
+  when: check_process.stdout == ""

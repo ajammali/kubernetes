@@ -1,0 +1,11 @@
+---
+
+- name: Load kubernetes docker images to all nodes
+  docker_image:
+    name: "{{ item }}"
+  with_items: "{{ k8s_images }}"
+  register: load_images
+
+#- name: Tag to original name
+#  command: " docker tag {{ it_registry }}/{{ item }} {{ item }}"
+#  with_items: "{{ k8s_images }}"

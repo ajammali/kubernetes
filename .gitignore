@@ -1,0 +1,15 @@
+.idea
+*.retry
+.vault_password.txt
+.project
+.settings/
+*.iml
+root.srl
+.vaultpass
+backup/
+vpn-keys/
+target/
+*~
+spec-infra/Gemfile.lock
+reports/
+.secret*
